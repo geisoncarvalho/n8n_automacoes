@@ -1,0 +1,497 @@
+{
+  "name": "Frigelar | Recupera Carrinho | Carrinho Abandonado",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Fluxo 1\n## Recuperação de carrinho\nDisparo multicanal: WhatsApp + e-mail.",
+        "height": 644,
+        "width": 2564,
+        "color": "#454545"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f409865b-0f5b-4fcd-a3f3-768bba4b9c6b",
+      "name": "Nota | Disparo1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1312,
+        336
+      ],
+      "id": "05a08a34-c578-4540-b051-b15b0323ae40",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.telefone_normalizado || $json.wa_phone || String($json.TELEFONE || \"\").replace(/\\D/g, \"\") }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1472,
+        368
+      ],
+      "id": "72f2f78c-21e0-47f4-8a69-932d71f114b4",
+      "name": "Postgres Chat Memory1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Preparar Contexto | Copy IA').item.json.EMAIL }}",
+        "subject": "={{ $json.email_subject }}",
+        "message": "={{ $json.email_html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        384
+      ],
+      "id": "70e83253-ebc1-4723-93c3-85d63f3112cc",
+      "name": "Send a message",
+      "webhookId": "1e1b413e-4417-4092-b45b-b028d3d12ce7"
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "={{ $json.copy_brief_for_ai }}",
+        "options": {
+          "systemMessage": "==Você é um redator comercial premium da Frigelar, especializado em recuperação de carrinho abandonado no WhatsApp.\n\nSua função é criar mensagens curtas, humanas, elegantes, naturais e persuasivas para o primeiro contato com clientes que abandonaram a compra, com foco em retomar a conversa e reacender o interesse de forma leve, consultiva e comercial.\n\nSeu trabalho é transformar os dados recebidos no contexto em uma mensagem que pareça escrita por uma pessoa real, dentro do padrão de uma marca confiável, especializada e próxima como a Frigelar.\n\nUse como base o nome do cliente e o nome do produto recebidos no contexto.\n\nObjetivo principal:\nGerar uma copy de WhatsApp que desperte interesse real para retomar a compra, sem soar genérica, forçada, artificial ou robótica.\n\nTom de voz:\n- Natural, simpático e vendedor-consultivo\n- Leve e envolvente\n- Direto, mas sem pressão exagerada\n- Comercial com elegância\n- Compatível com uma marca confiável e especializada\n\nRegras obrigatórias:\n- Responda sempre em português do Brasil.\n- A mensagem deve soar como uma conversa real de WhatsApp.\n- Comece de forma natural com o primeiro nome do cliente, por exemplo: “Bom dia, Guilherme!”\n- Abrevie o nome do cliente quando necessário. Exemplo: use “Guilherme” em vez de “GUILHERME DUARTE”.\n- Não invente desconto, estoque, frete, prazo, instalação, condição comercial ou urgência falsa.\n- Não use linguagem robótica, teatral, excessivamente publicitária ou dramática.\n- Não use frases vagas, prontas ou desconectadas do contexto do produto.\n- O gancho principal deve aparecer antes do CTA.\n- A mensagem precisa caber bem em um WhatsApp com imagem.\n- Use no máximo 3 emojis, e apenas quando fizerem sentido no contexto.\n- O CTA deve ser leve e convidativo, estimulando o cliente a conversar ou retomar a compra.\n- Nunca exponha raciocínio, validações internas ou explicações.\n- Nunca escreva nada fora do formato exigido pelo parser configurado.\n\nPersonalização do nome do produto:\nSempre simplifique o nome do produto recebido para uma forma curta, natural e comercialmente agradável.\nRemova:\n- voltagem\n- litragem\n- códigos\n- siglas técnicas desnecessárias\n- especificações excessivas\n- complementos que não ajudam na leitura comercial\n\nPreserve apenas o nome principal pelo qual o produto faz sentido para o cliente.\n\nExemplos de simplificação:\n- “Ar-Condicionado Split Inverter EOS Master Comfort 12000 BTUs Quente e Frio 220V” → “Ar-condicionado”\n- “Chopeira EOS Bierhaus 5 Litros com Compressor ECC055PC” → “Chopeira EOS Bierhaus”\n- “Adega Climatizada EOS 29 Garrafas Dual Zone EAC29DZ 220V” → “Adega EOS”\n- “Cervejeira Expositora Vertical EOS Bier Cooler 98 Litros” → “Cervejeira EOS”\n- “Máquina de Bebidas EOS Ice Frozen 2,1 Litros EMGF20” → “Máquina de bebidas EOS”\n\nConcordância obrigatória:\nRespeite sempre o gênero correto do produto simplificado.\nUse artigos, pronomes e construções compatíveis.\n\nExemplos corretos:\n- uma chopeira\n- sua adega\n- essa cervejeira\n- um ar-condicionado\n- seu freezer\n- esse refrigerador\n\nExemplos incorretos:\n- esse chopeira\n- seu adega\n\nDiretriz central de persuasão:\nConecte o produto ao benefício mais plausível, natural e desejável para aquela categoria.\nNunca associe um benefício incoerente com o tipo de item.\nNunca use argumento técnico ou de “resolver um problema” para produtos de desejo, lazer ou bem-estar.\n\nMapeamento por categoria:\n- Climatização: conforto, temperatura ideal, bem-estar, ambiente agradável, rotina mais confortável.\n- Adega, cervejeira, refrigerador, freezer, chopeira, máquina de bebidas e similares: bebida gelada, receber pessoas, praticidade em casa, lazer, ocasião, estilo, experiência.\n- Cozinha e eletroportáteis: praticidade, agilidade, rotina, conveniência, facilidade no dia a dia.\n- Manutenção, peça ou ferramenta: resolver a necessidade, evitar adiamento, praticidade para concluir o que precisa.\n\nRegras do gancho:\nO gancho deve parecer específico para o tipo de produto e para o momento de uso mais natural daquela categoria.\nEvite ganchos genéricos, frios ou com cara de automação.\n\nNunca use frases como:\n- “Seu carrinho ainda está salvo”\n- “Vi que você não finalizou”\n- “Está esperando o quê?”\n- “Produto perfeito para você”\n- “Oferta imperdível” sem base objetiva\n\nTambém evite construções inadequadas ao contexto, como:\n- “resolver isso sem adiar mais” para produtos de desejo, lazer ou experiência\n- “acabar com seu problema” para itens como chopeira, adega ou cervejeira\n- “não deixe para depois” como eixo principal quando o produto não for de necessidade prática\n\nEstrutura esperada da mensagem:\n1. Saudação natural com o primeiro nome do cliente\n2. Gancho contextual ligado ao principal benefício do produto\n3. Convite leve para conversar ou retomar a compra\n\nCritério interno de qualidade antes de responder:\nValide silenciosamente se:\n- o benefício combina com a categoria do produto\n- a frase parece natural no WhatsApp\n- a concordância do produto está correta\n- o texto soa consultivo e comercial, sem parecer forçado\n- o nome do produto foi simplificado corretamente\n- a mensagem está curta o suficiente para funcionar bem com imagem\n\nInstrução final de saída:\nRetorne somente os campos exigidos pelo formato estruturado configurado no parser, sem explicações, sem observações e sem nenhum texto fora da estrutura."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1376,
+        160
+      ],
+      "id": "0ddee196-6fd3-41e0-b1a7-ee4698530a81",
+      "name": "AI Agent | Copy WhatsApp1"
+    },
+    {
+      "parameters": {
+        "jsCode": "function safeString(value, maxLen) {\n  const text = String(value ?? '').replace(/\\s+/g, ' ').trim();\n  return maxLen ? text.slice(0, maxLen) : text;\n}\n\nfunction cleanupText(text) {\n  return String(text ?? '')\n    .replace(/\\s+/g, ' ')\n    .replace(/\\s+([,.!?;:])/g, '$1')\n    .trim();\n}\n\nfunction normalizeText(value) {\n  return String(value ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .trim();\n}\n\nfunction isPlainObject(value) {\n  return !!value && typeof value === 'object' && !Array.isArray(value);\n}\n\nfunction isValidCopyObject(obj) {\n  return !!(\n    obj &&\n    typeof obj === 'object' &&\n    (\n      obj.hero_hook ||\n      obj.reason_to_buy ||\n      obj.cta_line ||\n      obj.button_title ||\n      obj.button_description ||\n      obj.email_reason\n    )\n  );\n}\n\nfunction parseJsonFromText(raw) {\n  if (!raw) return null;\n\n  if (isPlainObject(raw)) {\n    if (isValidCopyObject(raw)) return raw;\n    if (isPlainObject(raw.json) && isValidCopyObject(raw.json)) return raw.json;\n    if (isPlainObject(raw.output) && isValidCopyObject(raw.output)) return raw.output;\n  }\n\n  const text = String(raw).trim();\n  if (!text) return null;\n\n  try {\n    const direct = JSON.parse(text);\n    if (isValidCopyObject(direct)) return direct;\n    if (isPlainObject(direct?.json) && isValidCopyObject(direct.json)) return direct.json;\n  } catch (_) {}\n\n  const fenced = text.match(/```(?:json)?\\s*([\\s\\S]*?)\\s*```/i);\n  if (fenced) {\n    try {\n      const parsed = JSON.parse(fenced[1]);\n      if (isValidCopyObject(parsed)) return parsed;\n      if (isPlainObject(parsed?.json) && isValidCopyObject(parsed.json)) return parsed.json;\n    } catch (_) {}\n  }\n\n  const start = text.indexOf('{');\n  const end = text.lastIndexOf('}');\n  if (start >= 0 && end > start) {\n    const candidate = text.slice(start, end + 1);\n    try {\n      const parsed = JSON.parse(candidate);\n      if (isValidCopyObject(parsed)) return parsed;\n      if (isPlainObject(parsed?.json) && isValidCopyObject(parsed.json)) return parsed.json;\n    } catch (_) {}\n  }\n\n  return null;\n}\n\nfunction extractTextFromAny(value) {\n  if (value == null) return '';\n\n  if (typeof value === 'string') return value;\n\n  if (Array.isArray(value)) {\n    return value\n      .map((item) => {\n        if (typeof item === 'string') return item;\n        if (isPlainObject(item)) {\n          return (\n            item.text ||\n            item.content ||\n            item.output ||\n            item.message ||\n            ''\n          );\n        }\n        return '';\n      })\n      .filter(Boolean)\n      .join('\\n');\n  }\n\n  if (isPlainObject(value)) {\n    if (typeof value.content === 'string') return value.content;\n    if (typeof value.text === 'string') return value.text;\n    if (typeof value.output === 'string') return value.output;\n    if (typeof value.message === 'string') return value.message;\n\n    if (Array.isArray(value.content)) {\n      return extractTextFromAny(value.content);\n    }\n\n    if (Array.isArray(value.messages)) {\n      return extractTextFromAny(value.messages);\n    }\n\n    if (isPlainObject(value.message)) {\n      return extractTextFromAny(value.message);\n    }\n\n    if (isPlainObject(value.output)) {\n      return extractTextFromAny(value.output);\n    }\n  }\n\n  return '';\n}\n\nfunction collectCandidates(j) {\n  return [\n    j,\n    j.output,\n    j.response,\n    j.result,\n    j.data,\n    j.message,\n    j.content,\n    j.text,\n    j.output?.content,\n    j.output?.text,\n    j.output?.message,\n    j.response?.content,\n    j.response?.text,\n    j.response?.message,\n    j.result?.content,\n    j.result?.text,\n    j.result?.message,\n    j.data?.content,\n    j.data?.text,\n    j.data?.message,\n    extractTextFromAny(j.output),\n    extractTextFromAny(j.response),\n    extractTextFromAny(j.result),\n    extractTextFromAny(j.data),\n    extractTextFromAny(j.message),\n    extractTextFromAny(j.content),\n  ].filter((v) => v !== undefined && v !== null && v !== '');\n}\n\nfunction resolveProductName(j) {\n  return cleanupText(\n    j.nome_produto ||\n    j.product_name_short ||\n    j.product_name ||\n    j.PRODUTO_NOME ||\n    j.produto_nome ||\n    j.NOME_PRODUTO ||\n    j.PRODUTO ||\n    ''\n  );\n}\n\nfunction resolveCategory(j) {\n  return cleanupText(\n    j.copy_category ||\n    j.categoria_produto ||\n    j.CATEGORIA ||\n    j.CATEGORIA_INFERIDA ||\n    ''\n  );\n}\n\nfunction detectGender(productName, category, explicitGender) {\n  const g = normalizeText(explicitGender);\n  if (g === 'f' || g === 'feminino') return 'F';\n  if (g === 'm' || g === 'masculino') return 'M';\n\n  const text = normalizeText(`${productName || ''} ${category || ''}`);\n\n  const feminineTerms = [\n    'chopeira',\n    'adega',\n    'cervejeira',\n    'maquina',\n    'máquina',\n    'fritadeira',\n    'lavadora',\n    'coifa',\n    'geladeira',\n    'cafeteira',\n    'air fryer',\n    'batedeira',\n    'sanduicheira',\n    'placa',\n    'bomba'\n  ];\n\n  const masculineTerms = [\n    'ar-condicionado',\n    'ar condicionado',\n    'refrigerador',\n    'frigobar',\n    'freezer',\n    'forno',\n    'micro-ondas',\n    'microondas',\n    'purificador',\n    'ventilador',\n    'climatizador',\n    'bebedouro',\n    'cooktop',\n    'aspirador',\n    'controle',\n    'motor',\n    'compressor',\n    'filtro secador'\n  ];\n\n  if (feminineTerms.some(term => text.includes(term))) return 'F';\n  if (masculineTerms.some(term => text.includes(term))) return 'M';\n\n  return 'M';\n}\n\nfunction getMainNoun(productName) {\n  const text = normalizeText(productName);\n  const nouns = [\n    'chopeira',\n    'adega',\n    'cervejeira',\n    'maquina de bebidas',\n    'geladeira',\n    'cafeteira',\n    'air fryer',\n    'fritadeira',\n    'batedeira',\n    'sanduicheira',\n    'placa',\n    'bomba',\n    'ar condicionado',\n    'refrigerador',\n    'frigobar',\n    'freezer',\n    'forno',\n    'micro-ondas',\n    'microondas',\n    'cooktop',\n    'ventilador',\n    'controle',\n    'motor',\n    'compressor',\n    'filtro secador'\n  ];\n\n  return nouns.find(noun => text.includes(noun)) || '';\n}\n\nfunction escapeRegExp(value) {\n  return String(value).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n}\n\nfunction fixGenderAgreement(text, gender, productName) {\n  let t = String(text || '');\n  if (!t || gender !== 'F') return t;\n\n  const noun = getMainNoun(productName);\n  if (!noun) return t;\n\n  const nounPattern = escapeRegExp(noun).replace(/\\s+/g, '\\\\s+');\n\n  t = t\n    .replace(new RegExp(`\\\\bSeu\\\\s+${nounPattern}\\\\b`, 'gi'), (m) => /^[A-Z]/.test(m) ? `Sua ${noun}` : `sua ${noun}`)\n    .replace(new RegExp(`\\\\bUm\\\\s+${nounPattern}\\\\b`, 'gi'), (m) => /^[A-Z]/.test(m) ? `Uma ${noun}` : `uma ${noun}`)\n    .replace(new RegExp(`\\\\bO\\\\s+${nounPattern}\\\\b`, 'gi'), (m) => /^[A-Z]/.test(m) ? `A ${noun}` : `a ${noun}`)\n    .replace(new RegExp(`\\\\bEsse\\\\s+${nounPattern}\\\\b`, 'gi'), (m) => /^[A-Z]/.test(m) ? `Essa ${noun}` : `essa ${noun}`)\n    .replace(new RegExp(`\\\\bEste\\\\s+${nounPattern}\\\\b`, 'gi'), (m) => /^[A-Z]/.test(m) ? `Esta ${noun}` : `esta ${noun}`)\n    .replace(/\\bSeu\\b/g, 'Sua')\n    .replace(/\\bseu\\b/g, 'sua')\n    .replace(/\\bEsse\\b/g, 'Essa')\n    .replace(/\\besse\\b/g, 'essa');\n\n  return t;\n}\n\nconst j = $json ?? {};\n\nlet parsed = null;\nlet parsedSource = '';\n\nfor (const candidate of collectCandidates(j)) {\n  const maybe = parseJsonFromText(candidate);\n  if (isValidCopyObject(maybe)) {\n    parsed = maybe;\n    parsedSource = typeof candidate === 'string' ? 'text' : 'object';\n    break;\n  }\n}\n\nconst fallback = {\n  hero_hook: j.fallback_copy_hook || '',\n  reason_to_buy: j.fallback_copy_reason || '',\n  cta_line: j.fallback_copy_cta || '',\n  button_title: j.fallback_button_title || '',\n  button_description: j.fallback_button_description || '',\n  email_reason: j.fallback_email_reason || ''\n};\n\nconst productName = resolveProductName(j);\nconst category = resolveCategory(j);\nconst gender = detectGender(productName, category, j.product_gender);\n\nconst hero_hook = cleanupText(\n  fixGenderAgreement(\n    safeString(parsed?.hero_hook || fallback.hero_hook, 110),\n    gender,\n    productName\n  )\n);\n\nconst reason_to_buy = cleanupText(\n  fixGenderAgreement(\n    safeString(parsed?.reason_to_buy || fallback.reason_to_buy, 180),\n    gender,\n    productName\n  )\n);\n\nconst cta_line = cleanupText(\n  fixGenderAgreement(\n    safeString(parsed?.cta_line || fallback.cta_line, 100),\n    gender,\n    productName\n  )\n);\n\nconst button_title = cleanupText(\n  fixGenderAgreement(\n    safeString(parsed?.button_title || fallback.button_title, 35),\n    gender,\n    productName\n  )\n);\n\nconst button_description = cleanupText(\n  fixGenderAgreement(\n    safeString(parsed?.button_description || fallback.button_description, 120),\n    gender,\n    productName\n  )\n);\n\nconst email_reason = cleanupText(\n  fixGenderAgreement(\n    safeString(parsed?.email_reason || fallback.email_reason, 180),\n    gender,\n    productName\n  )\n);\n\nreturn [{\n  json: {\n    ...j,\n    ai_copy_hook: hero_hook,\n    ai_copy_reason: reason_to_buy,\n    ai_copy_cta: cta_line,\n    ai_button_title: button_title,\n    ai_button_description: button_description,\n    ai_email_reason: email_reason,\n    ai_copy_parse_ok: !!parsed,\n    ai_copy_parse_source: parsedSource || 'fallback',\n    ai_gender_detected: gender,\n    ai_product_name_used: productName || '',\n    ai_category_used: category || '',\n    ai_raw_output_preview: safeString(\n      extractTextFromAny(j.output) ||\n      extractTextFromAny(j.response) ||\n      extractTextFromAny(j.result) ||\n      extractTextFromAny(j.data) ||\n      '',\n      500\n    )\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        160
+      ],
+      "id": "4fbd9eb5-21eb-4cfd-91ad-b813fd63828c",
+      "name": "Estruturar Copy IA | WhatsApp"
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $json ?? {};\n\nfunction normalizeText(value) {\n  return String(value ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .trim();\n}\n\nfunction cleanSpaces(value) {\n  return String(value ?? '').replace(/\\s+/g, ' ').trim();\n}\n\nfunction capitalize(value) {\n  const text = cleanSpaces(value);\n  return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';\n}\n\nfunction toTitleCase(value) {\n  return cleanSpaces(value)\n    .toLowerCase()\n    .replace(/\\b([a-zà-ÿ])/g, (match) => match.toUpperCase());\n}\n\nfunction getFirstName(fullName) {\n  const raw = cleanSpaces(String(fullName ?? '').replace(/[^\\p{L}\\s'-]/gu, ' '));\n  if (!raw) return 'Cliente';\n\n  const parts = raw.split(/\\s+/).filter(Boolean);\n  const first = parts[0] || 'Cliente';\n\n  return toTitleCase(first);\n}\n\nfunction getBrazilDateContext() {\n  const now = new Date();\n\n  const parts = new Intl.DateTimeFormat('pt-BR', {\n    timeZone: 'America/Sao_Paulo',\n    weekday: 'long',\n    hour: '2-digit',\n    month: '2-digit',\n    hour12: false,\n  }).formatToParts(now);\n\n  const map = Object.fromEntries(\n    parts\n      .filter((p) => p.type !== 'literal')\n      .map((p) => [p.type, p.value])\n  );\n\n  const weekdayName = String(map.weekday || '').toLowerCase();\n  const hour = Number(map.hour || 0);\n  const month = Number(map.month || 1);\n\n  const period =\n    hour < 12 ? 'manhã' :\n    hour < 18 ? 'tarde' :\n    'noite';\n\n  const season =\n    [12, 1, 2].includes(month) ? 'verão' :\n    [3, 4, 5].includes(month) ? 'outono' :\n    [6, 7, 8].includes(month) ? 'inverno' :\n    'primavera';\n\n  const isWeekend = weekdayName === 'sábado' || weekdayName === 'domingo';\n\n  return { weekdayName, hour, month, period, season, isWeekend };\n}\n\nfunction getGreeting(period, firstName) {\n  if (period === 'manhã') return `Bom dia, ${firstName}!`;\n  if (period === 'tarde') return `Boa tarde, ${firstName}!`;\n  return `Boa noite, ${firstName}!`;\n}\n\nfunction inferCategory(rawName, rawLink) {\n  const text = normalizeText(`${rawName || ''} ${rawLink || ''}`);\n\n  if (/(chopeira|chopp|bierhaus|bier cooler|cervejeira|adega|maquina de bebidas|máquina de bebidas|slushi|ice frozen|frozen)/.test(text)) {\n    return 'bebidas';\n  }\n\n  if (/(ar condicionado|ar-condicionado|climatiz|split|ventilador|ventilacao|ventilação|umidificador|desumidificador)/.test(text)) {\n    return 'climatizacao';\n  }\n\n  if (/(air fryer|fritadeira|forno|micro-ondas|microondas|cooktop|fogao|fogão|cafeteira|liquidificador|batedeira|sanduicheira|espremedor|grill|mixer|cozinha)/.test(text)) {\n    return 'cozinha';\n  }\n\n  if (/(geladeira|refrigerador|frigobar|freezer)/.test(text)) {\n    return 'refrigeracao';\n  }\n\n  if (/(ferrament|parafus|solda|bomba|motor|peca|peça|controle|placa|manutenc|manutenção|kit instalacao|kit instalação|filtro secador|tubo cobre|valvula|válvula|compressor|capacitor|termostato)/.test(text)) {\n    return 'manutencao';\n  }\n\n  return 'casa';\n}\n\nfunction simplifyProductName(rawName, category) {\n  const original = cleanSpaces(rawName);\n  if (!original) return 'Produto';\n\n  const normalized = normalizeText(original);\n\n  if (/chopeira/.test(normalized) && /eos/.test(normalized) && /bierhaus/.test(normalized)) return 'Chopeira EOS Bierhaus';\n  if (/cervejeira/.test(normalized) && /eos/.test(normalized)) return 'Cervejeira EOS';\n  if (/adega/.test(normalized) && /eos/.test(normalized)) return 'Adega EOS';\n  if (/(maquina de bebidas|máquina de bebidas|ice frozen|slushi)/.test(normalized) && /eos/.test(normalized)) return 'Máquina de bebidas EOS';\n  if (/(ar condicionado|ar-condicionado|split)/.test(normalized)) return 'Ar-condicionado';\n  if (/frigobar/.test(normalized)) return 'Frigobar';\n  if (/refrigerador/.test(normalized)) return 'Refrigerador';\n  if (/geladeira/.test(normalized)) return 'Geladeira';\n  if (/freezer/.test(normalized)) return 'Freezer';\n  if (/micro-ondas|microondas/.test(normalized)) return 'Micro-ondas';\n  if (/cooktop/.test(normalized)) return 'Cooktop';\n  if (/air fryer|fritadeira/.test(normalized)) return 'Air fryer';\n  if (/cafeteira/.test(normalized)) return 'Cafeteira';\n  if (/liquidificador/.test(normalized)) return 'Liquidificador';\n  if (/batedeira/.test(normalized)) return 'Batedeira';\n  if (/sanduicheira/.test(normalized)) return 'Sanduicheira';\n  if (/ventilador/.test(normalized)) return 'Ventilador';\n  if (/umidificador/.test(normalized)) return 'Umidificador';\n  if (/desumidificador/.test(normalized)) return 'Desumidificador';\n  if (/controle/.test(normalized)) return 'Controle';\n  if (/placa/.test(normalized)) return 'Placa';\n  if (/bomba/.test(normalized)) return 'Bomba';\n  if (/motor/.test(normalized)) return 'Motor';\n  if (/compressor/.test(normalized)) return 'Compressor';\n  if (/filtro secador/.test(normalized)) return 'Filtro secador';\n  if (/tubo cobre/.test(normalized)) return 'Tubo de cobre';\n\n  const cleaned = cleanSpaces(\n    original\n      .replace(/\\b\\d+[.,]?\\d*\\s*(litros?|l|btus?|garrafas?|kg|w|kw|cm|mm|m)\\b/gi, ' ')\n      .replace(/\\b(110v|127v|220v|bivolt)\\b/gi, ' ')\n      .replace(/\\b(inverter|digital|compacta|compacto|premium|smart|all black|all-white|quente e frio|frio)\\b/gi, ' ')\n      .replace(/\\b(com compressor|dual zone|vertical|expositora|split)\\b/gi, ' ')\n      .replace(/\\b([A-Z]{2,}\\d+[A-Z0-9-]*)\\b/g, ' ')\n      .replace(/[|/-]\\s*frigelar.*$/i, ' ')\n  );\n\n  if (cleaned) return cleaned;\n\n  const fallbackMap = {\n    bebidas: 'Produto para bebidas',\n    climatizacao: 'Climatizador',\n    cozinha: 'Produto de cozinha',\n    refrigeracao: 'Produto de refrigeração',\n    manutencao: 'Item de manutenção',\n    casa: 'Produto',\n  };\n\n  return fallbackMap[category] || 'Produto';\n}\n\nfunction inferGrammar(productName, category) {\n  const text = normalizeText(productName);\n\n  const femininePatterns = [\n    /chopeira/,\n    /cervejeira/,\n    /adega/,\n    /maquina de bebidas/,\n    /máquina de bebidas/,\n    /geladeira/,\n    /cafeteira/,\n    /fritadeira/,\n    /air fryer/,\n    /batedeira/,\n    /sanduicheira/,\n    /placa/,\n    /bomba/,\n    /peca/,\n    /peça/,\n    /valvula/,\n    /válvula/,\n  ];\n\n  const masculinePatterns = [\n    /ar condicionado/,\n    /ventilador/,\n    /umidificador/,\n    /desumidificador/,\n    /refrigerador/,\n    /frigobar/,\n    /freezer/,\n    /micro-ondas/,\n    /forno/,\n    /cooktop/,\n    /fogao/,\n    /fogão/,\n    /liquidificador/,\n    /espremedor/,\n    /grill/,\n    /mixer/,\n    /controle/,\n    /motor/,\n    /compressor/,\n    /capacitor/,\n    /filtro secador/,\n    /tubo de cobre/,\n    /kit/,\n  ];\n\n  if (femininePatterns.some((pattern) => pattern.test(text))) {\n    return {\n      gender: 'feminino',\n      definite: 'a',\n      indefinite: 'uma',\n      demonstrative: 'essa',\n      possessive: 'sua',\n    };\n  }\n\n  if (masculinePatterns.some((pattern) => pattern.test(text))) {\n    return {\n      gender: 'masculino',\n      definite: 'o',\n      indefinite: 'um',\n      demonstrative: 'esse',\n      possessive: 'seu',\n    };\n  }\n\n  if (category === 'climatizacao' || category === 'refrigeracao' || category === 'manutencao') {\n    return {\n      gender: 'masculino',\n      definite: 'o',\n      indefinite: 'um',\n      demonstrative: 'esse',\n      possessive: 'seu',\n    };\n  }\n\n  return {\n    gender: 'feminino',\n    definite: 'a',\n    indefinite: 'uma',\n    demonstrative: 'essa',\n    possessive: 'sua',\n  };\n}\n\nfunction getBenefitDirection(category, season, isWeekend, period) {\n  if (category === 'climatizacao') {\n    if (season === 'verão' || season === 'primavera') {\n      return 'conforto, temperatura ideal, ambiente agradável e rotina mais leve nos dias quentes';\n    }\n    return 'conforto, bem-estar e ambiente mais agradável no dia a dia';\n  }\n\n  if (category === 'bebidas') {\n    return isWeekend\n      ? 'bebida na temperatura certa, lazer em casa, receber bem e curtir bons momentos'\n      : 'praticidade para servir bebida gelada, experiência em casa e momentos mais gostosos';\n  }\n\n  if (category === 'cozinha') {\n    return period === 'manhã'\n      ? 'agilidade, praticidade e rotina mais fácil desde cedo'\n      : 'praticidade, conveniência e ganho real no dia a dia';\n  }\n\n  if (category === 'refrigeracao') {\n    return 'praticidade, conservação, organização e conveniência na rotina da casa';\n  }\n\n  if (category === 'manutencao') {\n    return 'resolver a necessidade com praticidade, sem enrolação e com objetivo claro';\n  }\n\n  return 'benefício real, melhora perceptível no dia a dia e linguagem natural';\n}\n\nfunction getForbiddenDirections(category) {\n  const map = {\n    bebidas: 'evite problema, urgência falsa, linguagem técnica, retrabalho e tom de solução de defeito',\n    climatizacao: 'evite exagero, pressão, urgência falsa e tecnicismo desnecessário',\n    cozinha: 'evite drama, tom publicitário demais e frases genéricas',\n    refrigeracao: 'evite exagero, artificialidade e pressão de venda',\n    manutencao: 'evite drama, promessas não confirmadas e urgência inventada',\n    casa: 'evite frases vagas, pressão comercial e linguagem robótica',\n  };\n\n  return map[category] || map.casa;\n}\n\nfunction buildFallback(category, productName, grammar, context) {\n  const product = cleanSpaces(productName) || 'produto';\n  const possessive = grammar.possessive;\n  const demonstrative = grammar.demonstrative;\n\n  if (category === 'climatizacao') {\n    return {\n      hook:\n        context.season === 'verão' || context.season === 'primavera'\n          ? `${capitalize(possessive)} ${product} pode deixar o ambiente muito mais agradável nos próximos dias.`\n          : `${capitalize(possessive)} ${product} pode trazer mais conforto para a rotina de casa.`,\n      reason: `É o tipo de compra que melhora o ambiente e faz diferença no uso real do dia a dia.`,\n      cta: `Se quiser, eu posso te ajudar a retomar por aqui.`,\n      buttonTitle: `Retomar compra`,\n      buttonDescription: `Retome a compra do ${product} com praticidade.`,\n      emailReason: `${capitalize(possessive)} ${product} pode trazer mais conforto e bem-estar para a rotina.`,\n    };\n  }\n\n  if (category === 'bebidas') {\n    return {\n      hook: context.isWeekend\n        ? `${capitalize(possessive)} ${product} combina muito com bons momentos em casa e tudo na temperatura certa.`\n        : `${capitalize(possessive)} ${product} pode deixar seus próximos momentos em casa ainda melhores.`,\n      reason: `Faz sentido para quem quer mais praticidade, experiência e prazer na hora de servir ou receber.`,\n      cta: `Se quiser, eu deixo a retomada bem simples por aqui.`,\n      buttonTitle: `Retomar compra`,\n      buttonDescription: `Retome a compra do ${product} com facilidade.`,\n      emailReason: `${capitalize(possessive)} ${product} faz sentido para quem quer mais praticidade e uma experiência melhor em casa.`,\n    };\n  }\n\n  if (category === 'cozinha') {\n    return {\n      hook: `${capitalize(possessive)} ${product} tem tudo para virar praticidade de verdade no dia a dia.`,\n      reason: `É aquele tipo de compra que costuma facilitar a rotina já no primeiro uso.`,\n      cta: `Se quiser, eu sigo com você por aqui para retomar sem complicação.`,\n      buttonTitle: `Ver compra`,\n      buttonDescription: `Retome a compra do ${product} com praticidade.`,\n      emailReason: `${capitalize(possessive)} ${product} pode simplificar sua rotina e trazer conveniência no uso diário.`,\n    };\n  }\n\n  if (category === 'refrigeracao') {\n    return {\n      hook: `${capitalize(possessive)} ${product} pode trazer mais praticidade e organização para a rotina da casa.`,\n      reason: `É um item que costuma fazer sentido no dia a dia, tanto pelo uso constante quanto pela conveniência.`,\n      cta: `Se quiser, eu posso te ajudar a retomar essa compra por aqui.`,\n      buttonTitle: `Retomar compra`,\n      buttonDescription: `Retome a compra do ${product} com tranquilidade.`,\n      emailReason: `${capitalize(possessive)} ${product} pode trazer mais praticidade e conveniência para a rotina.`,\n    };\n  }\n\n  if (category === 'manutencao') {\n    return {\n      hook: `${capitalize(demonstrative)} ${product} pode ser exatamente o que faltava para concluir isso com mais praticidade.`,\n      reason: `Quando esse tipo de item entra na hora certa, ele ajuda a resolver a necessidade sem complicar.`,\n      cta: `Se quiser, eu te ajudo a retomar rapidinho por aqui.`,\n      buttonTitle: `Continuar compra`,\n      buttonDescription: `Retome a compra do ${product} de forma simples.`,\n      emailReason: `${capitalize(demonstrative)} ${product} pode ajudar a resolver sua necessidade com mais praticidade.`,\n    };\n  }\n\n  return {\n    hook: `${capitalize(possessive)} ${product} ainda pode fazer bastante sentido para a sua rotina.`,\n    reason: `É uma compra que pode trazer uma melhora real no dia a dia, de forma prática e natural.`,\n    cta: `Se quiser, eu posso te ajudar a retomar por aqui.`,\n    buttonTitle: `Retomar compra`,\n    buttonDescription: `Retome sua compra com facilidade.`,\n    emailReason: `${capitalize(possessive)} ${product} ainda pode ser uma boa escolha para o dia a dia.`,\n  };\n}\n\nconst context = getBrazilDateContext();\n\nconst rawCustomerName = j.nome_cliente || j.NOME || j.nome || '';\nconst rawProductName = j.nome_produto || j.product_name || j.PRODUTO_NOME || 'produto do carrinho';\n\nconst productNameOriginal = cleanSpaces(String(rawProductName));\nconst category = inferCategory(productNameOriginal, j.LINKCARRINHO || j.tracking_link || '');\nconst productShort = simplifyProductName(productNameOriginal, category);\nconst grammar = inferGrammar(productShort, category);\nconst customerFirstName = getFirstName(rawCustomerName);\nconst benefitDirection = getBenefitDirection(category, context.season, context.isWeekend, context.period);\nconst forbiddenDirection = getForbiddenDirections(category);\nconst fallback = buildFallback(category, productShort, grammar, context);\nconst greeting = getGreeting(context.period, customerFirstName);\n\nconst categoryGuideMap = {\n  bebidas: 'use desejo, experiência em casa, bebida na temperatura certa, lazer e receber bem.',\n  climatizacao: 'use conforto, temperatura ideal, bem-estar e ambiente agradável.',\n  cozinha: 'use praticidade, agilidade, conveniência e facilidade no dia a dia.',\n  refrigeracao: 'use praticidade, conservação, organização e conveniência.',\n  manutencao: 'use necessidade real, objetividade e praticidade para concluir o que precisa.',\n  casa: 'use benefício real, rotina e melhora perceptível no dia a dia.',\n};\n\nconst copyBrief = [\n  `Crie 1 mensagem curta de WhatsApp para recuperação de carrinho da Frigelar.`,\n  `Fale em português do Brasil.`,\n  `Use um tom humano, natural, consultivo e comercial.`,\n  `Comece com uma saudação natural ao cliente.`,\n  `Nome para saudação: ${customerFirstName}.`,\n  `Saudação sugerida: ${greeting}`,\n  `Produto original: ${productNameOriginal}.`,\n  `Nome simplificado do produto: ${productShort}.`,\n  `Categoria comercial inferida: ${category}.`,\n  `Contexto no Brasil: ${context.weekdayName}, ${context.period}, ${context.season}${context.isWeekend ? ', fim de semana' : ''}.`,\n  `Concordância correta do produto: use ${grammar.indefinite} ${productShort.toLowerCase()}, ${grammar.possessive} ${productShort.toLowerCase()}, ${grammar.demonstrative} ${productShort.toLowerCase()}.`,\n  `Direção principal de benefício: ${benefitDirection}.`,\n  `Direção complementar de linguagem: ${categoryGuideMap[category] || categoryGuideMap.casa}`,\n  `Evitar: ${forbiddenDirection}.`,\n  `Gancho sugerido: ${fallback.hook}`,\n  `Razão sugerida: ${fallback.reason}`,\n  `CTA sugerido: ${fallback.cta}`,\n  `Não invente desconto, estoque, frete, prazo, instalação, condição comercial ou urgência.`,\n  `Não use frases genéricas como “seu carrinho ainda está salvo”, “vi que você não finalizou” ou “produto perfeito para você”.`,\n  `O gancho deve vir antes do CTA.`,\n  `A mensagem deve caber bem em um WhatsApp com imagem.`,\n  `Use no máximo 3 emojis e apenas se fizerem sentido.`,\n  `A mensagem final deve soar como alguém da Frigelar falando com o cliente de forma real.`,\n].join('\\n');\n\nreturn [\n  {\n    json: {\n      ...j,\n\n      // variáveis exatas para o prompt / LangChain\n      nome_cliente: customerFirstName,\n      nome_produto: productShort,\n\n      // opcionais, úteis para template\n      saudacao_cliente: greeting,\n      nome_cliente_completo: cleanSpaces(String(rawCustomerName || '')),\n      nome_produto_original: productNameOriginal,\n\n      // mantém compatibilidade com o resto do fluxo\n      customer_first_name: customerFirstName,\n      product_name_short: productShort,\n      product_gender: grammar.gender,\n      product_article_definite: grammar.definite,\n      product_article_indefinite: grammar.indefinite,\n      product_pronoun_demonstrative: grammar.demonstrative,\n      product_pronoun_possessive: grammar.possessive,\n      copy_weekday_name: context.weekdayName,\n      copy_is_weekend: context.isWeekend ? 'SIM' : 'NAO',\n      copy_period: context.period,\n      copy_season: context.season,\n      copy_category: category,\n      copy_primary_benefit_direction: benefitDirection,\n      copy_brief_for_ai: copyBrief,\n      fallback_copy_hook: fallback.hook,\n      fallback_copy_reason: fallback.reason,\n      fallback_copy_cta: fallback.cta,\n      fallback_button_title: fallback.buttonTitle,\n      fallback_button_description: fallback.buttonDescription,\n      fallback_email_reason: fallback.emailReason,\n\n      // pacote pronto para uso em prompt estruturado\n      prompt_variables: {\n        nome_cliente: customerFirstName,\n        nome_produto: productShort,\n        saudacao_cliente: greeting,\n        categoria_produto: category,\n        periodo_do_dia: context.period,\n        estacao_do_ano: context.season,\n      },\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        160
+      ],
+      "id": "10c3560e-8334-4548-9e41-73db39fe0a12",
+      "name": "Preparar Contexto | Copy IA"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uq0XFECUMqtLFIUFHoDSA_rtBem2ySR03AYJtXYwFrc",
+          "mode": "list",
+          "cachedResultName": "BASE_ABANDONO",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uq0XFECUMqtLFIUFHoDSA_rtBem2ySR03AYJtXYwFrc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1431077924,
+          "mode": "list",
+          "cachedResultName": "ABANDONO",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uq0XFECUMqtLFIUFHoDSA_rtBem2ySR03AYJtXYwFrc/edit#gid=1431077924"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        176
+      ],
+      "id": "2afa6485-b577-48bd-8afe-a6b95e699bc4",
+      "name": "Ler leads da planilha"
+    },
+    {
+      "parameters": {
+        "jsCode": "function parseBrDate(value) {\n  if (!value) return null;\n  if (value instanceof Date && !isNaN(value)) return value;\n  const s = String(value).trim();\n  const m = s.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})[ T](\\d{2}):(\\d{2})(?::(\\d{2}))?$/);\n  if (m) {\n    const [, dd, mm, yyyy, hh, mi, ss = '00'] = m;\n    return new Date(`${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}-03:00`);\n  }\n  const d = new Date(s);\n  return isNaN(d.getTime()) ? null : d;\n}\n\nfunction formatBr(dt) {\n  const pad = (n) => String(n).padStart(2, '0');\n  return `${pad(dt.getDate())}/${pad(dt.getMonth() + 1)}/${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;\n}\n\nfunction yes(v) {\n  return ['sim', 'true', '1', 'yes'].includes(String(v || '').trim().toLowerCase());\n}\n\nfunction validEmail(value) {\n  const email = String(value || '').trim().toLowerCase();\n  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\n}\n\nfunction normalizePhone(value) {\n  const digits = String(value || '').replace(/\\D+/g, '');\n  if (!digits) return '';\n  if (digits.length === 10 || digits.length === 11) return `55${digits}`;\n  if (digits.length === 12 && digits.startsWith('55')) return digits;\n  if (digits.length === 13 && digits.startsWith('55')) return digits;\n  return digits;\n}\n\nfunction validPhone(value) {\n  const p = normalizePhone(value);\n  return /^55\\d{10,11}$/.test(p);\n}\n\nfunction toTitle(text) {\n  return String(text || '')\n    .toLowerCase()\n    .split(/\\s+/)\n    .filter(Boolean)\n    .map(part => part.charAt(0).toUpperCase() + part.slice(1))\n    .join(' ');\n}\n\nfunction buildTrackedLink(rawLink, action, leadId) {\n  try {\n    const url = new URL(String(rawLink || '').trim());\n    url.searchParams.set('utm_source', 'whatsapp_email');\n    url.searchParams.set('utm_medium', 'crm');\n    url.searchParams.set('utm_campaign', 'recuperacao_carrinho_ia');\n    url.searchParams.set('utm_content', action || 'nao_enviado');\n    url.searchParams.set('lead_id', String(leadId || ''));\n    return url.toString();\n  } catch (e) {\n    return String(rawLink || '').trim();\n  }\n}\n\nconst now = new Date();\n\nreturn items.map(item => {\n  const j = item.json || {};\n  const rowNumber = j.row_number;\n  const idLead = String(j.ID_LEAD || rowNumber || '').trim();\n  const nomeCompleto = String(j.NOME || '').trim();\n  const primeiroNome = toTitle(nomeCompleto ? nomeCompleto.split(/\\s+/)[0] : 'cliente');\n  const email = String(j.EMAIL || '').trim().toLowerCase();\n  const telefone = normalizePhone(j.TELEFONE || j.WHATSAPP || j.CELULAR || '');\n  const linkOriginal = String(j.LINKCARRINHO || '').trim();\n  const abandono = parseBrDate(j.DATAHORA_ABANDONO || j.DATAHORA || j.DATA_ABANDONO);\n  const ultimoContato = parseBrDate(j.ULTIMO_CONTATO_EM);\n  const tentativas = Number(j.TENTATIVAS || 0);\n  const waUltimoStatus = String(j.WA_ULTIMO_STATUS || j.WA_MEDIA_STATUS || j.WA_BUTTONS_STATUS || '').trim().toUpperCase();\n  const statusFluxoAtual = String(j.STATUS_FLUXO || '').trim();\n\n  const respondeu = yes(j.RESPONDEU);\n  const bloqueado = yes(j.BLOQUEADO);\n  const converteu = yes(j.CONVERTEU);\n\n  const optinField = j.OPTIN_EMAIL ?? j.EMAIL_OPTIN ?? j.ACEITE_EMAIL ?? j.OPTIN;\n  const semOptinEmail = optinField !== undefined && String(optinField).trim() !== '' && !yes(optinField);\n\n  const diffMin = abandono ? Math.floor((now.getTime() - abandono.getTime()) / 60000) : null;\n  const sinceLastMin = ultimoContato ? Math.floor((now.getTime() - ultimoContato.getTime()) / 60000) : 999999;\n\n  // Evita looping: se teve erro de envio recentemente, aguarda antes de tentar de novo\n  const erroRecente = statusFluxoAtual === 'erro_envio_whatsapp' && sinceLastMin < 30;\n\n  // Evita duplicar: se a última mensagem ainda está pendente/ack, aguarda confirmação\n  const aguardandoAck = ['PENDING', 'SERVER_ACK', 'SENT'].includes(waUltimoStatus) && sinceLastMin < 10;\n\n  const invalidReasons = [];\n  if (!rowNumber) invalidReasons.push('SEM_ROW_NUMBER');\n  if (!nomeCompleto) invalidReasons.push('NOME_AUSENTE');\n  if (!validEmail(email)) invalidReasons.push('EMAIL_INVALIDO');\n  if (!validPhone(telefone)) invalidReasons.push('TELEFONE_INVALIDO');\n  if (!linkOriginal || !/^https?:\\/\\//i.test(linkOriginal)) invalidReasons.push('LINK_INVALIDO');\n  if (!abandono) invalidReasons.push('DATAHORA_INVALIDA');\n  if (semOptinEmail) invalidReasons.push('SEM_OPTIN_EMAIL');\n\n  const suppressionReasons = [];\n  if (bloqueado) suppressionReasons.push('BLOQUEADO');\n  if (converteu) suppressionReasons.push('JA_CONVERTEU');\n  if (respondeu) suppressionReasons.push('JA_RESPONDEU');\n  if (tentativas >= 3) suppressionReasons.push('LIMITE_TENTATIVAS');\n  if (erroRecente) suppressionReasons.push('ERRO_ENVIO_RECENTE');\n  if (aguardandoAck) suppressionReasons.push('AGUARDANDO_ACK');\n\n  let action = '';\n  if (invalidReasons.length === 0 && suppressionReasons.length === 0) {\n    if (tentativas === 0 && diffMin >= 60) {\n      action = 'send_initial';\n    } else if (tentativas === 1 && diffMin >= 360 && sinceLastMin >= 300) {\n      action = 'send_followup_1';\n    } else if (tentativas === 2 && diffMin >= 1440 && sinceLastMin >= 1200) {\n      action = 'send_followup_2';\n    }\n  }\n\n  let route = 'waiting';\n  let statusFluxo = String(j.STATUS_FLUXO || '').trim() || 'novo_abandono';\n\n  if (invalidReasons.length > 0) {\n    route = 'invalid';\n    statusFluxo = 'invalido_multicanal';\n  } else if (suppressionReasons.length > 0) {\n    route = 'suppressed';\n    statusFluxo = respondeu\n      ? 'respondeu_whatsapp'\n      : converteu\n        ? 'convertido'\n        : bloqueado\n          ? 'bloqueado'\n          : 'encerrado_sem_envio';\n  } else if (action) {\n    route = 'ready_send';\n    statusFluxo = 'pronto_para_envio_multicanal';\n  }\n\n  const trackingLink = buildTrackedLink(linkOriginal, action, idLead);\n\n  return {\n    json: {\n      ...j,\n      row_number: rowNumber,\n      primeiro_nome: primeiroNome,\n      email_destino: email,\n      telefone_normalizado: telefone,\n      wa_phone: telefone,\n      minutos_desde_abandono: diffMin,\n      since_last_contact_min: sinceLastMin,\n      action,\n      route,\n      tentativas_novas: action ? tentativas + 1 : tentativas,\n      ultimo_contato_novo: formatBr(now),\n      tracking_link: trackingLink,\n      status_fluxo_destino: statusFluxo,\n      valido_para_envio: invalidReasons.length ? 'NAO' : 'SIM',\n      motivo_invalidacao: invalidReasons.join(';'),\n      motivo_supressao: suppressionReasons.join(';'),\n      canal_disparo: 'WHATSAPP_EMAIL'\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        176
+      ],
+      "id": "372a3e7e-a528-4704-b90b-c4399083ab0e",
+      "name": "Preparar Leads | V4 Multicanal"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "optin_whatsapp_sim",
+              "leftValue": "={{ $json.OPTIN_WHATSAPP }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "SIM"
+            },
+            {
+              "id": "route_ready_send",
+              "leftValue": "={{ $json.route }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "ready_send"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        176
+      ],
+      "id": "201467eb-2934-41ed-956f-7268d747e9c2",
+      "name": "IF | Pronto para disparo?"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.LINKCARRINHO }}",
+        "options": {
+          "redirect": {},
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        752,
+        160
+      ],
+      "id": "6eabc21c-a3fc-49a0-bbd1-2b5a0fbebf48",
+      "name": "HTTP | Buscar página do produto"
+    },
+    {
+      "parameters": {
+        "jsCode": "function escapeHtml(value) {\n  return String(value ?? '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;')\n    .replace(/'/g, '&#39;');\n}\n\nfunction safeText(value, fallback = '') {\n  const text = String(value ?? '').replace(/\\s+/g, ' ').trim();\n  return text || String(fallback ?? '').replace(/\\s+/g, ' ').trim();\n}\n\nfunction safeUpper(value, fallback = '') {\n  return safeText(value, fallback).toUpperCase();\n}\n\nfunction joinParagraphs(parts) {\n  return parts\n    .map(part => safeText(part, ''))\n    .filter(Boolean)\n    .join('\\n\\n');\n}\n\nfunction inferImageMeta(url) {\n  const cleanUrl = String(url || '').trim().split('?')[0].toLowerCase();\n  if (cleanUrl.endsWith('.png')) return { mimetype: 'image/png', fileName: 'carrinho-frigelar.png' };\n  if (cleanUrl.endsWith('.webp')) return { mimetype: 'image/webp', fileName: 'carrinho-frigelar.webp' };\n  if (cleanUrl.endsWith('.gif')) return { mimetype: 'image/gif', fileName: 'carrinho-frigelar.gif' };\n  return { mimetype: 'image/jpeg', fileName: 'carrinho-frigelar.jpg' };\n}\n\nfunction toTitleCase(value) {\n  return safeText(value)\n    .toLowerCase()\n    .replace(/\\b([a-zà-ÿ])/g, (m) => m.toUpperCase());\n}\n\nfunction firstNameFromRecord(record) {\n  const rawName = safeText(\n    record.nome_cliente ||\n    record.customer_first_name ||\n    record.primeiro_nome ||\n    record.PRIMEIRO_NOME ||\n    record.cliente_nome ||\n    record.CLIENTE_NOME ||\n    record.nome ||\n    record.NOME ||\n    record.nome_cliente_completo,\n    ''\n  );\n\n  if (!rawName) return '';\n  return toTitleCase(rawName.split(/\\s+/)[0].trim());\n}\n\nfunction tryParseJson(value) {\n  if (value == null) return null;\n\n  if (typeof value === 'object' && !Array.isArray(value)) {\n    return value;\n  }\n\n  const text = safeText(value, '');\n  if (!text) return null;\n\n  try {\n    return JSON.parse(text);\n  } catch (_) {}\n\n  const fenced = text.match(/```(?:json)?\\s*([\\s\\S]*?)\\s*```/i);\n  if (fenced) {\n    try {\n      return JSON.parse(fenced[1]);\n    } catch (_) {}\n  }\n\n  const start = text.indexOf('{');\n  const end = text.lastIndexOf('}');\n  if (start >= 0 && end > start) {\n    try {\n      return JSON.parse(text.slice(start, end + 1));\n    } catch (_) {}\n  }\n\n  return null;\n}\n\nfunction extractTextFromAny(value) {\n  if (value == null) return '';\n\n  if (typeof value === 'string') return value;\n\n  if (Array.isArray(value)) {\n    return value.map(extractTextFromAny).filter(Boolean).join('\\n');\n  }\n\n  if (typeof value === 'object') {\n    return (\n      extractTextFromAny(value.text) ||\n      extractTextFromAny(value.content) ||\n      extractTextFromAny(value.output) ||\n      extractTextFromAny(value.message) ||\n      ''\n    );\n  }\n\n  return '';\n}\n\nfunction extractAiFields(record) {\n  const parsedOutput =\n    tryParseJson(record.output) ||\n    tryParseJson(record.ai_output_json) ||\n    tryParseJson(record.response) ||\n    tryParseJson(record.result) ||\n    tryParseJson(record.message) ||\n    tryParseJson(record.content) ||\n    null;\n\n  const plainOutput =\n    extractTextFromAny(record.output) ||\n    extractTextFromAny(record.response) ||\n    extractTextFromAny(record.result) ||\n    extractTextFromAny(record.message) ||\n    extractTextFromAny(record.content) ||\n    '';\n\n  return {\n    hook: safeText(\n      record.ai_copy_hook ||\n      record.hero_hook ||\n      parsedOutput?.hero_hook ||\n      parsedOutput?.hook ||\n      '',\n      ''\n    ),\n    reason: safeText(\n      record.ai_copy_reason ||\n      record.reason_to_buy ||\n      parsedOutput?.reason_to_buy ||\n      parsedOutput?.reason ||\n      '',\n      ''\n    ),\n    cta: safeText(\n      record.ai_copy_cta ||\n      record.cta_line ||\n      parsedOutput?.cta_line ||\n      parsedOutput?.cta ||\n      '',\n      ''\n    ),\n    buttonTitle: safeText(\n      record.ai_button_title ||\n      record.button_title ||\n      parsedOutput?.button_title ||\n      '',\n      ''\n    ),\n    buttonDescription: safeText(\n      record.ai_button_description ||\n      record.button_description ||\n      parsedOutput?.button_description ||\n      '',\n      ''\n    ),\n    emailReason: safeText(\n      record.ai_email_reason ||\n      record.email_reason ||\n      parsedOutput?.email_reason ||\n      '',\n      ''\n    ),\n    plainOutput\n  };\n}\n\nfunction asciiSubject(text) {\n  return safeText(text, '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction youtubeSearchUrl(productName) {\n  const query = encodeURIComponent(`${safeText(productName, 'produto Frigelar')} Frigelar`);\n  return `https://www.youtube.com/results?search_query=${query}`;\n}\n\nfunction resolveProductName(record) {\n  return safeText(\n    record.nome_produto ||\n    record.product_name_short ||\n    record.product_name ||\n    record.PRODUTO_NOME ||\n    record.produto_nome ||\n    record.NOME_PRODUTO ||\n    record.PRODUTO,\n    'Produto do carrinho'\n  );\n}\n\nfunction resolveGreeting(record, firstName, channel = 'wa') {\n  if (channel === 'wa') {\n    return safeText(\n      record.saudacao_cliente,\n      firstName ? `Oi, ${firstName}!` : 'Oi!'\n    );\n  }\n\n  return firstName ? `Olá, ${firstName}!` : 'Olá!';\n}\n\nfunction buildCategoryGrid(categories) {\n  const rows = [];\n\n  for (let i = 0; i < categories.length; i += 3) {\n    const chunk = categories.slice(i, i + 3);\n\n    const cells = chunk.map(cat => `\n      <td class=\"category-card stack-column\" width=\"33.33%\" align=\"center\" style=\"padding:8px;\">\n        <a href=\"${escapeHtml(cat.url)}\" target=\"_blank\" style=\"text-decoration:none;\">\n          <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"background-color:#ffffff; border:1px solid #deebf5; border-radius:18px;\">\n            <tr>\n              <td style=\"padding:18px 12px 16px 12px; text-align:center;\">\n                <div style=\"width:40px; height:40px; line-height:40px; font-size:19px; color:#17325c; background-color:#eef5fc; border-radius:50%; margin:0 auto 10px auto;\">${escapeHtml(cat.icon)}</div>\n                <div style=\"font-size:15px; line-height:20px; font-weight:bold; color:#17325c;\">${escapeHtml(cat.title)}</div>\n              </td>\n            </tr>\n          </table>\n        </a>\n      </td>\n    `).join('');\n\n    const filler = new Array(Math.max(0, 3 - chunk.length))\n      .fill('<td width=\"33.33%\" style=\"padding:8px;\"></td>')\n      .join('');\n\n    rows.push(`<tr>${cells}${filler}</tr>`);\n  }\n\n  return rows.join('');\n}\n\nreturn items.map(item => {\n  const j = item.json || {};\n\n  const frigelarHome = 'https://www.frigelar.com.br/';\n  const primeiroNome = firstNameFromRecord(j);\n  const action = safeText(j.action, 'send_initial');\n\n  const saudacaoWhatsapp = resolveGreeting(j, primeiroNome, 'wa');\n  const saudacaoEmail = resolveGreeting(j, primeiroNome, 'email');\n  const prefixoAssunto = primeiroNome ? `${primeiroNome}, ` : '';\n\n  const leadId = safeText(j.ID_LEAD || j.row_number, '');\n  const hashCarrinho = safeText(j.HASH_CARRINHO, '');\n  const telefone = String(\n    j.wa_phone ||\n    j.telefone_normalizado ||\n    j.TELEFONE ||\n    ''\n  ).replace(/\\D/g, '');\n\n  const waPhone = telefone;\n\n  const refKey = safeText(\n    leadId ||\n    hashCarrinho ||\n    waPhone,\n    ''\n  );\n\n  const linkCarrinho = safeText(j.tracking_link || j.LINKCARRINHO, frigelarHome);\n  const productName = resolveProductName(j);\n\n  const heroImageUrl = safeText(\n    j.hero_image_url ||\n    j.whatsapp_image_media ||\n    j.product_image_url ||\n    'https://res.cloudinary.com/dg5ejf7qq/image/upload/v1774221141/ChatGPT_Image_22_de_mar._de_2026_20_12_11_mupahz.png'\n  );\n\n  const imageMeta = inferImageMeta(heroImageUrl);\n  const ai = extractAiFields(j);\n\n  const aiHook = ai.hook || `Seu ${productName.toLowerCase()} ainda pode fazer sentido para a sua rotina.`;\n  const aiReason = ai.reason || `Se você quiser, eu posso te ajudar a retomar essa compra com mais praticidade por aqui.`;\n  const aiCta = ai.cta || 'É só tocar no botão abaixo para continuar.';\n  const aiEmailReason = ai.emailReason || `Percebemos que a compra de ${productName} ficou em aberto e deixamos o acesso pronto para você retomar com mais praticidade.`;\n\n  const productDescription = safeText(\n    j.product_description ||\n    j.PRODUTO_DESCRICAO ||\n    j.DESCRICAO ||\n    j.DESCRIÇÃO ||\n    aiEmailReason,\n    aiEmailReason\n  );\n\n  const youtubeUrl = safeText(j.video_url, youtubeSearchUrl(productName));\n\n  const categories = [\n    { title: 'Ar Condicionado', icon: '❄', url: 'https://www.frigelar.com.br/ar-condicionado/c' },\n    { title: 'Eletrodomésticos', icon: '⌂', url: 'https://www.frigelar.com.br/eletrodomesticos/c' },\n    { title: 'Eletroportáteis', icon: '⚡', url: 'https://www.frigelar.com.br/eletroportateis/c' },\n    { title: 'Climatização', icon: '✦', url: 'https://www.frigelar.com.br/climatizacao/c' },\n    { title: 'Ferramentas', icon: '🛠', url: 'https://www.frigelar.com.br/ferramentas/c' },\n    { title: 'Peças', icon: '⚙', url: 'https://www.frigelar.com.br/pecas-e-acessorios/c' }\n  ];\n\n  let subject = '';\n  let headline = '';\n  let intro = '';\n  let support = '';\n  let finalCta = '';\n\n  if (action === 'send_initial') {\n    subject = asciiSubject(`${prefixoAssunto}vamos retomar sua compra na Frigelar`);\n    headline = 'Seu carrinho está pronto para continuar.';\n    intro = aiEmailReason;\n    support = aiReason;\n    finalCta = 'Retomar minha compra';\n  } else if (action === 'send_followup_1') {\n    subject = asciiSubject(`${prefixoAssunto}posso te ajudar a continuar sua compra`);\n    headline = 'Seu produto ainda pode valer a pena.';\n    intro = `Seu carrinho com ${productName} continua disponível para você retomar quando quiser.`;\n    support = aiReason;\n    finalCta = 'Ver meu carrinho';\n  } else {\n    subject = asciiSubject(`${prefixoAssunto}deixei seu carrinho pronto para voce concluir`);\n    headline = 'Seu acesso ao carrinho continua disponível.';\n    intro = `Deixei o link do seu carrinho pronto para você concluir quando fizer sentido.`;\n    support = aiReason;\n    finalCta = 'Concluir minha compra';\n  }\n\n  const preheader = safeText(aiHook || intro, 'Seu carrinho continua disponível para retomar.');\n  const categoryGrid = buildCategoryGrid(categories);\n\n  const whatsappImageCaption = joinParagraphs([\n    saudacaoWhatsapp,\n    aiHook,\n    aiReason,\n    aiCta\n  ]);\n\n  const whatsappMainText = joinParagraphs([\n    'Acesso rápido',\n    'Escolha uma opção abaixo para continuar.',\n    aiCta || 'Toque em uma das opções para seguir.'\n  ]);\n\n  const whatsappButtonTitle = 'Atendimento Frigelar';\n\n  const whatsappButtonFooter = 'Frigelar • atendimento digital';\n\n  const whatsappButtonActions = [\n    {\n      id: 'btn_acessar_link',\n      type: 'URL',\n      url: linkCarrinho || 'https://www.frigelar.com.br/',\n      label: 'Acessar link'\n    },\n    {\n      id: 'btn_continuar_conversa',\n      type: 'REPLY',\n      label: 'Continuar conversa'\n    }\n  ];\n\n  const whatsappHelpText = joinParagraphs([\n    saudacaoWhatsapp,\n    'Claro! Me diga o que você precisa e eu sigo com o atendimento por aqui.',\n    aiCta || 'Se preferir, eu também posso te ajudar a retomar a compra.'\n  ]);\n\n  const whatsappCarouselMessage = 'Acesso rápido';\n\n  const whatsappCarouselCardText = joinParagraphs([\n    saudacaoWhatsapp,\n    aiHook,\n    aiReason,\n    aiCta || 'Escolha uma das opções abaixo para continuar.'\n  ]);\n\n  const whatsappCarouselCards = [\n    {\n      text: whatsappCarouselCardText,\n      image: heroImageUrl,\n      buttons: whatsappButtonActions\n    }\n  ];\n\n  const emailTemplate = `\n<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n  <title>{{email_subject}}</title>\n  <style type=\"text/css\">\n    body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }\n    table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }\n    img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }\n    table { border-collapse:collapse !important; }\n    body { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; background-color:#edf3f8; }\n    .desktop-width { width:640px; }\n    @media screen and (max-width: 640px) {\n      .desktop-width { width:100% !important; }\n      .stack, .stack-column, .category-card { display:block !important; width:100% !important; max-width:100% !important; }\n      .mobile-center { text-align:center !important; }\n      .mobile-padding { padding-left:22px !important; padding-right:22px !important; }\n      .hero-title { font-size:34px !important; line-height:40px !important; }\n      .hero-copy { font-size:17px !important; line-height:27px !important; }\n      .button-block a { display:block !important; }\n    }\n  </style>\n</head>\n<body style=\"margin:0; padding:0; background-color:#edf3f8; font-family:Arial, Helvetica, sans-serif; color:#17325c;\">\n  <div style=\"display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all; font-size:1px; line-height:1px; color:#edf3f8;\">\n    {{preheader}}\n  </div>\n\n  <center style=\"width:100%; background-color:#edf3f8;\">\n    <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"width:100%; background-color:#edf3f8;\">\n      <tr>\n        <td align=\"center\" style=\"padding:24px 10px 40px 10px;\">\n\n          <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"640\" class=\"desktop-width\" style=\"width:640px; max-width:640px;\">\n            <tr>\n              <td style=\"padding:0 0 14px 0; text-align:center; font-size:12px; line-height:18px; color:#6b7a90;\">\n                Frigelar • climatização, refrigeração, eletro e muito mais.\n              </td>\n            </tr>\n          </table>\n\n          <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"640\" class=\"desktop-width\" style=\"width:640px; max-width:640px; background-color:#ffffff; border-radius:28px; overflow:hidden; box-shadow:0 18px 50px rgba(14,37,76,0.10);\">\n            <tr>\n              <td style=\"background-color:#0b2d63; height:8px; line-height:8px; font-size:8px;\">&nbsp;</td>\n            </tr>\n\n            <tr>\n              <td style=\"padding:24px 28px 10px 28px; background-color:#ffffff;\">\n                <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\">\n                  <tr>\n                    <td class=\"stack-column mobile-center\" valign=\"middle\" style=\"padding-bottom:10px;\">\n                      <a href=\"https://www.frigelar.com.br/\" target=\"_blank\" style=\"text-decoration:none;\">\n                        <span style=\"font-size:26px; line-height:30px; font-weight:800; letter-spacing:0.5px; color:#0b3b84;\">FRIGELAR</span>\n                      </a>\n                    </td>\n                    <td class=\"stack-column mobile-center\" valign=\"middle\" align=\"right\" style=\"padding-bottom:10px; font-size:12px; line-height:18px; color:#6580a8;\">\n                      Referência de compra online em climatização, refrigeração, eletro e muito mais.\n                    </td>\n                  </tr>\n                </table>\n              </td>\n            </tr>\n\n            <tr>\n              <td style=\"padding:10px 20px 18px 20px;\">\n                <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"width:100%; background:#0f4aa1; background-image:linear-gradient(135deg, #0b3b84 0%, #195ec1 100%); border-radius:28px; overflow:hidden;\">\n                  <tr>\n                    <td align=\"center\" style=\"padding:34px 34px 38px 34px; color:#ffffff; text-align:center;\">\n                      <div style=\"margin-bottom:16px;\">\n                        <a href=\"{{link_carrinho}}\" target=\"_blank\" style=\"display:inline-block; background-color:#dff06b; color:#18315b; font-size:12px; line-height:12px; font-weight:bold; padding:8px 14px; border-radius:999px; letter-spacing:0.4px; text-decoration:none;\">\n                          SEU CARRINHO CONTINUA AQUI\n                        </a>\n                      </div>\n                      <div style=\"font-size:18px; line-height:24px; color:#d8e8ff; font-weight:bold; margin-bottom:10px;\">{{saudacao_email}}</div>\n                      <div class=\"hero-title\" style=\"font-size:44px; line-height:50px; font-weight:bold; color:#ffffff; margin-bottom:16px;\">\n                        {{headline}}\n                      </div>\n                      <div class=\"hero-copy\" style=\"font-size:19px; line-height:30px; color:#eaf3ff; max-width:500px; margin:0 auto 24px auto;\">\n                        {{intro}}\n                      </div>\n                      <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" class=\"button-block\" align=\"center\">\n                        <tr>\n                          <td bgcolor=\"#8bc53f\" style=\"border-radius:14px;\">\n                            <a href=\"{{link_carrinho}}\" target=\"_blank\" style=\"display:inline-block; padding:16px 28px; font-size:16px; line-height:16px; font-weight:bold; color:#ffffff; text-decoration:none; border-radius:14px;\">\n                              {{final_cta}}\n                            </a>\n                          </td>\n                        </tr>\n                      </table>\n                    </td>\n                  </tr>\n                </table>\n              </td>\n            </tr>\n\n            <tr>\n              <td style=\"padding:0 20px 20px 20px;\">\n                <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"width:100%; background-color:#ffffff; border:1px solid #dfe8f3; border-radius:24px; overflow:hidden;\">\n                  <tr>\n                    <td align=\"center\" style=\"padding:0;\">\n                      <img src=\"{{hero_image_url}}\" alt=\"Imagem do carrinho abandonado\" width=\"600\" style=\"display:block; width:100%; max-width:600px; height:auto;\" />\n                    </td>\n                  </tr>\n                </table>\n              </td>\n            </tr>\n\n            <tr>\n              <td style=\"padding:0 20px 20px 20px;\">\n                <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"width:100%; background-color:#ffffff; border:1px solid #dfe8f3; border-radius:24px; overflow:hidden;\">\n                  <tr>\n                    <td class=\"mobile-padding\" valign=\"middle\" style=\"padding:30px 28px;\">\n                      <div style=\"font-size:12px; line-height:18px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#1e63c6; margin-bottom:8px;\">Produto salvo no carrinho</div>\n                      <div style=\"font-size:30px; line-height:36px; font-weight:bold; color:#17325c; margin-bottom:14px;\">{{product_name}}</div>\n                      <div style=\"font-size:16px; line-height:26px; color:#5a6d87; margin-bottom:14px;\">{{product_description}}</div>\n                      <div style=\"font-size:16px; line-height:26px; color:#5a6d87;\">{{support}}</div>\n                    </td>\n                  </tr>\n                </table>\n              </td>\n            </tr>\n\n            <tr>\n              <td style=\"padding:22px 20px 22px 20px; text-align:center;\">\n                <a href=\"{{link_carrinho}}\" target=\"_blank\" style=\"display:inline-block; padding:18px 34px; font-size:17px; line-height:17px; font-weight:bold; color:#ffffff; text-decoration:none; background:#0b3b84; background-image:linear-gradient(135deg, #0b3b84 0%, #1757af 100%); border-radius:16px;\">\n                  Quero concluir minha compra\n                </a>\n              </td>\n            </tr>\n\n          </table>\n        </td>\n      </tr>\n    </table>\n  </center>\n</body>\n</html>\n`;\n\n  const templateVars = {\n    email_subject: escapeHtml(subject),\n    preheader: escapeHtml(preheader),\n    saudacao_email: escapeHtml(saudacaoEmail),\n    headline: escapeHtml(headline),\n    intro: escapeHtml(intro),\n    support: escapeHtml(support),\n    final_cta: escapeHtml(finalCta),\n    product_name: escapeHtml(productName),\n    product_description: escapeHtml(productDescription),\n    hero_image_url: escapeHtml(heroImageUrl),\n    link_carrinho: escapeHtml(linkCarrinho),\n    youtube_url: escapeHtml(youtubeUrl)\n  };\n\n  const html = emailTemplate.replace(/\\{\\{\\s*([a-zA-Z0-9_]+)\\s*\\}\\}/g, (_, key) => templateVars[key] ?? '');\n\n  return {\n    json: {\n      ...j,\n      email_subject: subject,\n      email_html: html,\n\n      whatsapp_image_caption: whatsappImageCaption,\n      whatsapp_image_media: heroImageUrl,\n      whatsapp_image_mimetype: imageMeta.mimetype,\n      whatsapp_image_filename: imageMeta.fileName,\n\n      whatsapp_text: whatsappMainText,\n      whatsapp_button_title: whatsappButtonTitle,\n      whatsapp_button_footer: whatsappButtonFooter,\n      whatsapp_button_actions: whatsappButtonActions,\n      whatsapp_help_text: whatsappHelpText,\n      whatsapp_carousel_message: whatsappCarouselMessage,\n      whatsapp_carousel_cards: whatsappCarouselCards,\n      whatsapp_cta_url: linkCarrinho || 'https://www.frigelar.com.br/',\n      wa_phone: waPhone,\n\n      wa_ref_key: refKey,\n      tema_disparo: 'recuperacao_carrinho',\n      contexto_disparo: `Tema: recuperação de carrinho abandonado. Produto: ${productName}. Ação: ${action}. Gancho enviado: ${aiHook}. Motivo comercial enviado: ${aiReason}. CTA: ${aiCta}. Link: ${linkCarrinho}. Tentativa: ${safeText(j.tentativas_novas || j.TENTATIVAS, '')}.`,\n      ultimo_disparo_action: action,\n      premium_image_prompt: 'Banner premium de carrinho abandonado da Frigelar, fundo azul escuro com degradê elegante, carrinho moderno estilizado, iluminação clean, sensação tecnológica, texto central Seu carrinho está pronto para continuar, estilo publicitário premium, alta conversão, composição horizontal 1200x630',\n      status_fluxo_enviado: 'aguardando_resposta_multicanal',\n\n      debug_nome_cliente_usado: primeiroNome,\n      debug_nome_produto_usado: productName,\n      debug_ai_hook_usado: aiHook,\n      debug_ai_reason_usado: aiReason,\n      debug_ai_cta_usado: aiCta\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1872,
+        160
+      ],
+      "id": "f493789e-392b-4ecf-af36-79da6b891df0",
+      "name": "Montar Conteúdo Comercial | WA + Email"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $('IF | Pronto para disparo?').item.json ?? {};\nconst http = $json ?? {};\n\nfunction decodeHtml(value) {\n  const map = {\n    '&amp;': '&',\n    '&quot;': '\"',\n    '&#39;': \"'\",\n    '&apos;': \"'\",\n    '&lt;': '<',\n    '&gt;': '>',\n    '&nbsp;': ' ',\n  };\n\n  return String(value ?? '').replace(\n    /&amp;|&quot;|&#39;|&apos;|&lt;|&gt;|&nbsp;/g,\n    (match) => map[match] || match\n  );\n}\n\nfunction cleanSpaces(value) {\n  return String(value ?? '').replace(/\\s+/g, ' ').trim();\n}\n\nfunction stripTags(value) {\n  return cleanSpaces(decodeHtml(String(value ?? '').replace(/<[^>]+>/g, ' ')));\n}\n\nfunction getHtmlPayload(source) {\n  const candidates = [\n    source?.body,\n    source?.data,\n    source?.html,\n    source?.content,\n    typeof source === 'string' ? source : '',\n  ];\n\n  for (const item of candidates) {\n    if (typeof item === 'string' && item.trim()) return item;\n  }\n\n  return JSON.stringify(source ?? {});\n}\n\nfunction getStatusCode(source, html) {\n  const code = Number(source?.statusCode || source?.status || source?.code || 0);\n  if (Number.isFinite(code) && code > 0) return code;\n  return html && html !== '{}' ? 200 : 0;\n}\n\nfunction parseAttributes(tag) {\n  const attrs = {};\n  const regex = /([:@\\w-]+)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))/g;\n\n  let match;\n  while ((match = regex.exec(tag)) !== null) {\n    const key = String(match[1] || '').toLowerCase();\n    const value = match[2] ?? match[3] ?? match[4] ?? '';\n    attrs[key] = decodeHtml(value);\n  }\n\n  return attrs;\n}\n\nfunction extractMetaContent(html, keys) {\n  const wanted = new Set([].concat(keys).map((k) => String(k).toLowerCase()));\n  const tags = html.match(/<meta\\b[^>]*>/gi) || [];\n\n  for (const tag of tags) {\n    const attrs = parseAttributes(tag);\n    const names = [attrs.property, attrs.name, attrs.itemprop]\n      .filter(Boolean)\n      .map((v) => String(v).toLowerCase());\n\n    if (!attrs.content) continue;\n    if (names.some((name) => wanted.has(name))) {\n      return cleanSpaces(attrs.content);\n    }\n  }\n\n  return '';\n}\n\nfunction extractTitle(html) {\n  const match = html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i);\n  return match ? stripTags(match[1]) : '';\n}\n\nfunction getJsonLdBlocks(html) {\n  const blocks = [];\n  const regex = /<script\\b[^>]*type=[\"']application\\/ld\\+json[\"'][^>]*>([\\s\\S]*?)<\\/script>/gi;\n\n  let match;\n  while ((match = regex.exec(html)) !== null) {\n    if (match[1]) blocks.push(match[1].trim());\n  }\n\n  return blocks;\n}\n\nfunction safeJsonParse(raw) {\n  const attempts = [\n    raw,\n    raw\n      .replace(/^\\s*<!--/, '')\n      .replace(/-->\\s*$/, '')\n      .replace(/<!\\[CDATA\\[/g, '')\n      .replace(/\\]\\]>/g, '')\n      .trim(),\n  ];\n\n  for (const attempt of attempts) {\n    try {\n      return JSON.parse(attempt);\n    } catch (_) {}\n  }\n\n  return null;\n}\n\nfunction walkJson(node, visit) {\n  if (!node || typeof node !== 'object') return;\n\n  visit(node);\n\n  if (Array.isArray(node)) {\n    for (const item of node) walkJson(item, visit);\n    return;\n  }\n\n  for (const value of Object.values(node)) {\n    if (value && typeof value === 'object') walkJson(value, visit);\n  }\n}\n\nfunction hasType(node, expectedType) {\n  const type = node?.['@type'];\n  const list = Array.isArray(type) ? type : [type];\n  return list.some((item) => String(item || '').toLowerCase() === String(expectedType).toLowerCase());\n}\n\nfunction pickImageFromNode(node) {\n  const candidate = node?.image || node?.thumbnailUrl || node?.logo;\n\n  if (!candidate) return '';\n\n  if (typeof candidate === 'string') return candidate;\n\n  if (Array.isArray(candidate)) {\n    for (const item of candidate) {\n      if (typeof item === 'string' && item.trim()) return item;\n      if (item && typeof item === 'object' && item.url) return item.url;\n    }\n  }\n\n  if (typeof candidate === 'object' && candidate.url) {\n    return candidate.url;\n  }\n\n  return '';\n}\n\nfunction pickVideoFromNode(node) {\n  const candidate = node?.video || node?.subjectOf;\n\n  if (!candidate) return '';\n\n  const items = Array.isArray(candidate) ? candidate : [candidate];\n\n  for (const item of items) {\n    if (typeof item === 'string' && item.trim()) return item;\n\n    if (item && typeof item === 'object') {\n      const direct =\n        item.contentUrl ||\n        item.embedUrl ||\n        item.url ||\n        item.playerType ||\n        '';\n\n      if (direct) return direct;\n    }\n  }\n\n  return '';\n}\n\nfunction extractJsonLdData(html) {\n  const result = {\n    name: '',\n    description: '',\n    image: '',\n    video: '',\n  };\n\n  const blocks = getJsonLdBlocks(html);\n\n  for (const block of blocks) {\n    const parsed = safeJsonParse(block);\n    if (!parsed) continue;\n\n    walkJson(parsed, (node) => {\n      if (!result.name && typeof node.name === 'string') {\n        if (hasType(node, 'Product') || hasType(node, 'Thing') || node.name) {\n          result.name = cleanSpaces(decodeHtml(node.name));\n        }\n      }\n\n      if (!result.description && typeof node.description === 'string') {\n        result.description = stripTags(node.description);\n      }\n\n      if (!result.image) {\n        const image = pickImageFromNode(node);\n        if (image) result.image = image;\n      }\n\n      if (!result.video) {\n        const video = pickVideoFromNode(node);\n        if (video) result.video = video;\n      }\n    });\n\n    if (result.name && result.description && result.image && result.video) break;\n  }\n\n  return result;\n}\n\nfunction normalizeUrl(rawUrl, baseUrl) {\n  const value = String(rawUrl ?? '').trim();\n  if (!value) return '';\n\n  if (/^(javascript|data|mailto):/i.test(value)) return '';\n  if (value.startsWith('//')) return `https:${value}`;\n\n  try {\n    return new URL(value, baseUrl).toString();\n  } catch (_) {\n    return value;\n  }\n}\n\nfunction cleanupProductName(name) {\n  return cleanSpaces(\n    decodeHtml(name)\n      .replace(/\\s*[\\|\\-–—]\\s*Frigelar.*$/i, '')\n      .replace(/\\s{2,}/g, ' ')\n  );\n}\n\nfunction fallbackNameFromUrl(url) {\n  try {\n    const pathname = new URL(url).pathname || '';\n    const parts = pathname\n      .split('/')\n      .filter(Boolean)\n      .map((part) => decodeURIComponent(part));\n\n    const ignored = new Set(['produto', 'produtos', 'p', 'item', 'loja', 'categoria']);\n    const slug =\n      [...parts].reverse().find((part) => !ignored.has(part.toLowerCase())) || 'produto';\n\n    return cleanupProductName(\n      slug\n        .replace(/\\.(html?|php)$/i, '')\n        .replace(/[-_]+/g, ' ')\n    ) || 'Produto';\n  } catch (_) {\n    return 'Produto';\n  }\n}\n\nfunction extractVideoFromHtml(html) {\n  const metaVideo =\n    extractMetaContent(html, ['og:video', 'og:video:url', 'og:video:secure_url', 'twitter:player']) || '';\n  if (metaVideo) return metaVideo;\n\n  const patterns = [\n    /https?:\\/\\/(?:www\\.)?youtube\\.com\\/watch\\?v=[\\w-]+(?:[^\\s\"'<>]*)/i,\n    /https?:\\/\\/youtu\\.be\\/[\\w-]+(?:[^\\s\"'<>]*)/i,\n    /https?:\\/\\/(?:www\\.)?youtube(?:-nocookie)?\\.com\\/embed\\/[\\w-]+(?:[^\\s\"'<>]*)/i,\n    /https?:\\/\\/player\\.vimeo\\.com\\/video\\/\\d+(?:[^\\s\"'<>]*)/i,\n    /https?:\\/\\/[^\\s\"'<>]+?\\.(?:mp4|webm|m3u8)(?:[^\\s\"'<>]*)/i,\n    /<video[^>]+src=[\"']([^\"']+)[\"']/i,\n    /<source[^>]+src=[\"']([^\"']+)[\"']/i,\n    /<iframe[^>]+src=[\"']([^\"']*(?:youtube|youtu\\.be|vimeo)[^\"']*)[\"']/i,\n  ];\n\n  for (const pattern of patterns) {\n    const match = html.match(pattern);\n    if (!match) continue;\n    const value = match[1] || match[0];\n    if (value) return value;\n  }\n\n  return '';\n}\n\nconst html = getHtmlPayload(http);\nconst jsonLd = extractJsonLdData(html);\n\nlet productName =\n  extractMetaContent(html, ['og:title']) ||\n  jsonLd.name ||\n  extractTitle(html) ||\n  fallbackNameFromUrl(lead.LINKCARRINHO);\n\nproductName = cleanupProductName(productName);\n\nlet productDescription =\n  extractMetaContent(html, ['og:description', 'description']) ||\n  jsonLd.description ||\n  '';\n\nproductDescription = stripTags(productDescription);\n\nlet productImage =\n  extractMetaContent(html, ['og:image', 'twitter:image']) ||\n  jsonLd.image ||\n  '';\n\nlet videoUrl =\n  jsonLd.video ||\n  extractVideoFromHtml(html) ||\n  '';\n\nproductImage = normalizeUrl(productImage, lead.LINKCARRINHO);\nvideoUrl = normalizeUrl(videoUrl, lead.LINKCARRINHO);\n\nconst hasDirectVideo = Boolean(videoUrl);\n\nif (!videoUrl) {\n  videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${productName} Frigelar`)}`;\n}\n\nreturn [\n  {\n    json: {\n      ...lead,\n      product_name: productName || 'Produto selecionado',\n      product_description: productDescription,\n      product_image_url: productImage,\n      video_url: videoUrl,\n      video_label: hasDirectVideo ? 'Assistir vídeo do produto' : 'Ver vídeos e demonstrações',\n      has_direct_video: hasDirectVideo ? 'SIM' : 'NAO',\n      product_fetch_status: getStatusCode(http, html),\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        160
+      ],
+      "id": "00497f03-af15-48ff-b4ca-50b5a73749a2",
+      "name": "Enriquecer Produto + Vídeo"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        176
+      ],
+      "id": "7f085fa0-ff4b-4961-b6d6-579e9aea3ce5",
+      "name": "A cada 10 Minutos"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.z-api.io/instances/3F05DAA4DCE24276073CEE37F1774CBC/token/BBF7962E6E9658B00FAF229A/send-carousel",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => {\n  const phone = String($('Preparar Contexto | Copy IA').item.json.telefone_normalizado || $('Preparar Contexto | Copy IA').item.json.TELEFONE || '').replace(/\\D/g, '');\n  const image = $('Montar Conteúdo Comercial | WA + Email').item.json.whatsapp_image_media ||\n                'https://res.cloudinary.com/dg5ejf7qq/image/upload/v1774221141/ChatGPT_Image_22_de_mar._de_2026_20_12_11_mupahz.png';\n  const url = $('Montar Conteúdo Comercial | WA + Email').item.json.whatsapp_cta_url ||\n              'https://www.frigelar.com.br/';\n  const formattedText = String($('Montar Conteúdo Comercial | WA + Email').item.json.whatsapp_text || '').trim();\n  const produto = String($('Montar Conteúdo Comercial | WA + Email').item.json.ai_product_name_used || $('Preparar Contexto | Copy IA').item.json.PRODUTO_NOME || '').trim();\n  const refKey = String($('Montar Conteúdo Comercial | WA + Email').item.json.wa_ref_key || '').trim();\n  const replyLabel = produto\n    ? `Continuar s/ ${produto}`.slice(0, 28)\n    : 'Continuar conversa';\n\n  return {\n    phone,\n    message: $('Montar Conteúdo Comercial | WA + Email').item.json.whatsapp_carousel_message || 'Acesso rápido',\n    carousel: [\n      {\n        text: formattedText,\n        image,\n        buttons: [\n          {\n            id: 'btn_acessar_link',\n            type: 'URL',\n            url,\n            label: 'Acessar link'\n          },\n          {\n            id: refKey ? `continuar_conversa::${refKey}` : 'continuar_conversa::carrinho',\n            type: 'REPLY',\n            label: replyLabel\n          }\n        ]\n      }\n    ],\n    delayMessage: 2\n  };\n})() }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2080,
+        160
+      ],
+      "id": "15573650-393c-4427-adf2-c9cdb15d9cb4",
+      "name": "HTTP | Enviar WhatsApp | Carousel Z-API"
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "={{ `REGISTRO DE CONTEXTO DO LEAD\\norigem: recuperacao_carrinho\\ntelefone: ${$json.telefone_normalizado || $json.wa_phone || ''}\\nlead_id: ${$json.ID_LEAD || ''}\\nproduto: ${$json.debug_nome_produto_usado || $json.PRODUTO_NOME || ''}\\nproduto_simplificado: ${$json.ai_product_name_used || ''}\\nlink_carrinho: ${$json.tracking_link || $json.whatsapp_cta_url || ''}\\ncta_wa: ${$json.debug_ai_cta_usado || $json.ai_copy_cta || ''}\\ngancho_wa: ${$json.debug_ai_hook_usado || $json.ai_copy_hook || ''}\\nmensagem_wa: ${$json.whatsapp_text || ''}\\nacao_regua: ${$json.action || ''}\\ntentativa: ${$json.tentativas_novas || ''}\\nstatus_fluxo: ${$json.status_fluxo_enviado || $json.status_fluxo_destino || ''}\\nwa_ref_key: ${$json.wa_ref_key || ''}\\ncontexto_disparo: ${$json.contexto_disparo || ''}` }}",
+        "options": {
+          "systemMessage": "Você é um registrador silencioso de contexto da sessão compartilhada entre os fluxos do n8n. Sua função é apenas gravar o contexto recebido na memória da conversa para uso posterior do chatbot de WhatsApp. Não reescreva, não resuma, não faça perguntas. Responda exatamente com OK."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2272,
+        304
+      ],
+      "id": "2d052cd4-bb42-4d7c-b86e-854b4ea92753",
+      "name": "AI Agent | Registrar Contexto Disparo"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent | Copy WhatsApp1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent | Registrar Contexto Disparo",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent | Registrar Contexto Disparo",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent | Copy WhatsApp1": {
+      "main": [
+        [
+          {
+            "node": "Estruturar Copy IA | WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estruturar Copy IA | WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Montar Conteúdo Comercial | WA + Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto | Copy IA": {
+      "main": [
+        [
+          {
+            "node": "AI Agent | Copy WhatsApp1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler leads da planilha": {
+      "main": [
+        [
+          {
+            "node": "Preparar Leads | V4 Multicanal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Leads | V4 Multicanal": {
+      "main": [
+        [
+          {
+            "node": "IF | Pronto para disparo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF | Pronto para disparo?": {
+      "main": [
+        [
+          {
+            "node": "HTTP | Buscar página do produto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP | Buscar página do produto": {
+      "main": [
+        [
+          {
+            "node": "Enriquecer Produto + Vídeo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Conteúdo Comercial | WA + Email": {
+      "main": [
+        [
+          {
+            "node": "AI Agent | Registrar Contexto Disparo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enriquecer Produto + Vídeo": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto | Copy IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent | Registrar Contexto Disparo": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP | Enviar WhatsApp | Carousel Z-API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A cada 10 Minutos": {
+      "main": [
+        [
+          {
+            "node": "Ler leads da planilha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "12488ba8-59f6-4802-98c1-0c2bb5b7bb2e",
+  "meta": {
+    "instanceId": "589c91b7a5b9954394ccba3ed7e21630a25ffd67f8ca3180ec161173282a0597"
+  },
+  "id": "8QgtgnSXaBUzjpaC",
+  "tags": [
+    {
+      "name": "Ativo para a Frigelar",
+      "id": "B726iwWZgpXwDpDD",
+      "updatedAt": "2026-04-08T16:32:52.639Z",
+      "createdAt": "2026-04-08T16:32:52.639Z"
+    }
+  ]
+}
